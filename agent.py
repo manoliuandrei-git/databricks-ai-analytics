@@ -206,7 +206,7 @@ Current date: {datetime.now().strftime('%Y-%m-%d')}
             'retry_attempted': max_retries > 0
         }
 
-  def fix_failed_sql(self, failed_sql, original_question):
+    def fix_failed_sql(self, failed_sql, original_question):
         """
         Ask Claude to fix a failed SQL query.
         Provides the error context and asks for a corrected version.
