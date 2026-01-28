@@ -31,8 +31,9 @@ class InsightsManager:
         """
         query = f"""
         SELECT 
-            insight_id,
-            insight_type,
+            run_id,
+            source,
+            metric_type,
             metric_name,
             metric_value,
             ai_interpretation,
@@ -45,23 +46,23 @@ class InsightsManager:
     
     def get_insights_by_type(self, insight_type):
         """
-        Get insights filtered by type (e.g., 'Product Performance', 'Sales Patterns').
+        Get insights filtered by type.
         
         Args:
-            insight_type (str): The type of insight to retrieve
+            insight_type (str): The type of insight to retrieve (uses source or metric_type)
             
         Returns:
             pandas.DataFrame: Filtered insights
         """
         query = f"""
         SELECT 
-            insight_id,
+            run_id,
             metric_name,
             metric_value,
             ai_interpretation,
             generated_at
         FROM {self.insights_table}
-        WHERE insight_type = '{insight_type}'
+        WHERE source = '{insight_type}' OR metric_type = '{insight_type}'
         ORDER BY generated_at DESC
         """
         return db.execute_query(query)
@@ -69,7 +70,7 @@ class InsightsManager:
     def get_latest_insights_by_type(self):
         """
         Get the most recent insight for each insight type.
-        Useful for dashboard summary view.
+        Uses source as the grouping field.
         
         Returns:
             pandas.DataFrame: Latest insight per type
@@ -77,43 +78,45 @@ class InsightsManager:
         query = f"""
         WITH ranked_insights AS (
             SELECT 
-                insight_id,
-                insight_type,
+                run_id,
+                source,
+                metric_type,
                 metric_name,
                 metric_value,
                 ai_interpretation,
                 generated_at,
-                ROW_NUMBER() OVER (PARTITION BY insight_type ORDER BY generated_at DESC) as rn
+                ROW_NUMBER() OVER (PARTITION BY source ORDER BY generated_at DESC) as rn
             FROM {self.insights_table}
         )
         SELECT 
-            insight_id,
-            insight_type,
+            run_id,
+            source,
+            metric_type,
             metric_name,
             metric_value,
             ai_interpretation,
             generated_at
         FROM ranked_insights
         WHERE rn = 1
-        ORDER BY insight_type
+        ORDER BY source
         """
         return db.execute_query(query)
     
     def get_insight_types(self):
         """
-        Get list of all unique insight types in the database.
+        Get list of all unique insight sources in the database.
         
         Returns:
-            list: List of insight type strings
+            list: List of insight source strings
         """
         query = f"""
-        SELECT DISTINCT insight_type
+        SELECT DISTINCT source
         FROM {self.insights_table}
-        ORDER BY insight_type
+        ORDER BY source
         """
         df = db.execute_query(query)
         if not df.empty:
-            return df['insight_type'].tolist()
+            return df['source'].tolist()
         return []
     
     def search_insights(self, search_term):
@@ -128,8 +131,9 @@ class InsightsManager:
         """
         query = f"""
         SELECT 
-            insight_id,
-            insight_type,
+            run_id,
+            source,
+            metric_type,
             metric_name,
             metric_value,
             ai_interpretation,
@@ -152,7 +156,7 @@ class InsightsManager:
         query = f"""
         SELECT 
             COUNT(*) as total_insights,
-            COUNT(DISTINCT insight_type) as unique_types,
+            COUNT(DISTINCT source) as unique_types,
             MIN(generated_at) as earliest_insight,
             MAX(generated_at) as latest_insight
         FROM {self.insights_table}

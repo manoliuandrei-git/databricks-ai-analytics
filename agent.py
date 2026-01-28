@@ -77,6 +77,7 @@ IMPORTANT RULES:
 5. Always use proper SQL syntax with appropriate JOINs when querying multiple tables
 6. Return ONLY the SQL query, no explanations or markdown formatting
 7. If the question cannot be answered with the available data, explain why
+8. The sales status is case sensitive and can be "Completed"
 
 Current date: {datetime.now().strftime('%Y-%m-%d')}
 """

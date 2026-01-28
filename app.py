@@ -220,7 +220,7 @@ def insights_dashboard():
         if not latest_insights.empty:
             for _, row in latest_insights.iterrows():
                 with st.container():
-                    st.markdown(f"### {row['insight_type']}")
+                    st.markdown(f"### {row['source']}")  # Changed from insight_type
                     col1, col2 = st.columns([3, 1])
                     with col1:
                         st.markdown(f"**{row['metric_name']}:** {row['metric_value']}")
