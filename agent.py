@@ -3,10 +3,20 @@ AI Agent with conversation memory for natural language data queries.
 Translates user questions into SQL and maintains conversation context.
 """
 
+
 import streamlit as st
 from datetime import datetime
 from config import config
 from database import db
+
+
+# Initialize session state for conversation history
+# This runs once when the module is first imported
+if 'conversation_history' not in st.session_state:
+    st.session_state.conversation_history = []
+
+if 'database_context' not in st.session_state:
+    st.session_state.database_context = None
 
 
 class ConversationManager:
@@ -20,12 +30,12 @@ class ConversationManager:
         self.model = config.claude_model
         
         # Initialize conversation history in session state if not exists
-        if 'conversation_history' not in st.session_state:
-            st.session_state.conversation_history = []
+        #if 'conversation_history' not in st.session_state:
+        #    st.session_state.conversation_history = []
         
         # Cache database context (only build once per session)
-        if 'database_context' not in st.session_state:
-            st.session_state.database_context = db.get_database_context()
+        #if 'database_context' not in st.session_state:
+        #    st.session_state.database_context = db.get_database_context()
     
     def get_conversation_history(self):
         """Return current conversation history from session state."""
@@ -47,6 +57,12 @@ class ConversationManager:
         Build the system prompt that tells Claude how to behave.
         Includes database schema and instructions for SQL generation.
         """
+
+        # Initialize database context if not already done
+        if st.session_state.database_context is None:
+            st.session_state.database_context = db.get_database_context()
+
+
         system_prompt = f"""You are a data analytics assistant with access to a retail analytics database.
 
 {st.session_state.database_context}
