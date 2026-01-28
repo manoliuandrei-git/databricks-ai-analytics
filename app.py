@@ -55,7 +55,8 @@ def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.radio(
         "Choose a page:",
-        ["Chat Interface", "Insights Dashboard", "Database Explorer"]
+        ["Chat Interface", "Database Explorer"]
+        #["Chat Interface", "Insights Dashboard", "Database Explorer"] # Commented the insight Dashboard
     )
     
     # Route to selected page
