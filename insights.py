@@ -32,12 +32,13 @@ class InsightsManager:
         query = f"""
         SELECT 
             run_id,
-            source,
-            metric_type,
+            generated_at,
             metric_name,
+            metric_category,
+            metric_description,
             metric_value,
-            ai_interpretation,
-            generated_at
+            metric_type,
+            source
         FROM {self.insights_table}
         ORDER BY generated_at DESC
         LIMIT {limit}
@@ -46,10 +47,10 @@ class InsightsManager:
     
     def get_insights_by_type(self, insight_type):
         """
-        Get insights filtered by type.
+        Get insights filtered by source or metric_category.
         
         Args:
-            insight_type (str): The type of insight to retrieve (uses source or metric_type)
+            insight_type (str): The type of insight to retrieve
             
         Returns:
             pandas.DataFrame: Filtered insights
@@ -57,45 +58,49 @@ class InsightsManager:
         query = f"""
         SELECT 
             run_id,
+            generated_at,
             metric_name,
+            metric_category,
+            metric_description,
             metric_value,
-            ai_interpretation,
-            generated_at
+            metric_type,
+            source
         FROM {self.insights_table}
-        WHERE source = '{insight_type}' OR metric_type = '{insight_type}'
+        WHERE source = '{insight_type}' OR metric_category = '{insight_type}'
         ORDER BY generated_at DESC
         """
         return db.execute_query(query)
     
     def get_latest_insights_by_type(self):
         """
-        Get the most recent insight for each insight type.
-        Uses source as the grouping field.
+        Get the most recent insight for each source.
         
         Returns:
-            pandas.DataFrame: Latest insight per type
+            pandas.DataFrame: Latest insight per source
         """
         query = f"""
         WITH ranked_insights AS (
             SELECT 
                 run_id,
-                source,
-                metric_type,
-                metric_name,
-                metric_value,
-                ai_interpretation,
                 generated_at,
+                metric_name,
+                metric_category,
+                metric_description,
+                metric_value,
+                metric_type,
+                source,
                 ROW_NUMBER() OVER (PARTITION BY source ORDER BY generated_at DESC) as rn
             FROM {self.insights_table}
         )
         SELECT 
             run_id,
-            source,
-            metric_type,
+            generated_at,
             metric_name,
+            metric_category,
+            metric_description,
             metric_value,
-            ai_interpretation,
-            generated_at
+            metric_type,
+            source
         FROM ranked_insights
         WHERE rn = 1
         ORDER BY source
@@ -121,7 +126,7 @@ class InsightsManager:
     
     def search_insights(self, search_term):
         """
-        Search insights by keyword in metric_name or ai_interpretation.
+        Search insights by keyword in metric_name or metric_description.
         
         Args:
             search_term (str): Term to search for
@@ -132,15 +137,16 @@ class InsightsManager:
         query = f"""
         SELECT 
             run_id,
-            source,
-            metric_type,
+            generated_at,
             metric_name,
+            metric_category,
+            metric_description,
             metric_value,
-            ai_interpretation,
-            generated_at
+            metric_type,
+            source
         FROM {self.insights_table}
         WHERE LOWER(metric_name) LIKE LOWER('%{search_term}%')
-           OR LOWER(ai_interpretation) LIKE LOWER('%{search_term}%')
+           OR LOWER(metric_description) LIKE LOWER('%{search_term}%')
         ORDER BY generated_at DESC
         LIMIT 20
         """

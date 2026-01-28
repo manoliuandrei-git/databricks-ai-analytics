@@ -220,11 +220,13 @@ def insights_dashboard():
         if not latest_insights.empty:
             for _, row in latest_insights.iterrows():
                 with st.container():
-                    st.markdown(f"### {row['source']}")  # Changed from insight_type
+                    st.markdown(f"### {row['source']}")
                     col1, col2 = st.columns([3, 1])
                     with col1:
                         st.markdown(f"**{row['metric_name']}:** {row['metric_value']}")
-                        st.write(row['ai_interpretation'])
+                        st.write(row['metric_description'])
+                        if row['metric_category']:
+                            st.caption(f"Category: {row['metric_category']}")
                     with col2:
                         st.caption(f"Generated: {row['generated_at']}")
                     st.divider()
@@ -267,7 +269,9 @@ def insights_dashboard():
                         col1, col2 = st.columns([3, 1])
                         with col1:
                             st.markdown(f"**{row['metric_name']}:** {row['metric_value']}")
-                            st.write(row['ai_interpretation'])
+                            st.write(row['metric_description'])
+                            if row['metric_category']:
+                                st.caption(f"Category: {row['metric_category']}")
                         with col2:
                             st.caption(f"Generated: {row['generated_at']}")
                         st.divider()
